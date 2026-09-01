@@ -2,8 +2,8 @@
 """tiny_lisp.py - a small educational Lisp interpreter.
 
 Supports numbers, symbols, S-expressions, basic arithmetic and
-comparison operators, and the special forms `define`, `if`, `lambda`
-and `begin`. Implemented with only the Python standard library.
+comparison operators, and the special forms `define`, `if`, `lambda`,
+`begin` and `quote`. Implemented with only the Python standard library.
 """
 
 import sys
@@ -221,6 +221,11 @@ def eval_exp(x, env):
         raise EvalError("cannot evaluate an empty list ()")
 
     op, *args = x
+
+    if op == "quote":
+        if len(args) != 1:
+            raise EvalError("malformed 'quote': expected (quote expr)")
+        return args[0]
 
     if op == "define":
         if len(args) != 2 or not isinstance(args[0], Symbol):

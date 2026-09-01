@@ -148,6 +148,35 @@ class TestEval(unittest.TestCase):
         with self.assertRaises(tl.LispError):
             self.ev("(lambda x (+ x 1))")
 
+    def test_quote_flat_list(self):
+        self.assertEqual(self.ev("(quote (1 2 3))"), [1, 2, 3])
+
+    def test_quote_nested_list(self):
+        self.assertEqual(
+            self.ev("(quote (1 (2 3) (+ 4 5)))"),
+            [1, [2, 3], ["+", 4, 5]],
+        )
+
+    def test_quote_does_not_evaluate(self):
+        # (+ 1 2) inside quote must stay an unevaluated list, not become 3.
+        self.assertEqual(self.ev("(quote (+ 1 2))"), ["+", 1, 2])
+
+    def test_quote_does_not_look_up_undefined_symbol(self):
+        # `x` is never defined in this environment; quoting it must not
+        # trigger a symbol lookup.
+        self.assertEqual(self.ev("(quote x)"), "x")
+
+    def test_quote_empty_list(self):
+        self.assertEqual(self.ev("(quote ())"), [])
+
+    def test_malformed_quote_no_args(self):
+        with self.assertRaises(tl.LispError):
+            self.ev("(quote)")
+
+    def test_malformed_quote_too_many_args(self):
+        with self.assertRaises(tl.LispError):
+            self.ev("(quote 1 2)")
+
 
 class TestCLI(unittest.TestCase):
     def run_cli(self, args=None, input_text=None):
