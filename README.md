@@ -16,7 +16,8 @@ interface with a REPL.
 - **Symbols** and **S-expressions** (nested lists).
 - **Arithmetic**: `+` `-` `*` `/` (variadic, e.g. `(+ 1 2 3)`).
 - **Comparisons**: `>` `<` `>=` `<=` `=` (chainable, e.g. `(< 1 2 3)`).
-- **Special forms**: `define`, `if`, `lambda`, `begin`, `quote`.
+- **Special forms**: `define`, `if`, `lambda`, `begin`, `quote` (plus the
+  `'expr` reader shorthand for `(quote expr)`).
 - **Function application**, **lexical environments/closures**, and
   **recursion**.
 
@@ -76,6 +77,10 @@ $ echo "(* 6 7)" | python tiny_lisp.py
 
 (quote (1 2 3))            ; => (1 2 3)
 (quote x)                  ; => x, even if x is undefined
+
+'(1 2 3)                    ; => (1 2 3), same as (quote (1 2 3))
+'x                          ; => x
+''x                         ; => (quote x), same as (quote (quote x))
 ```
 
 Closures:

@@ -3,7 +3,8 @@
 
 Supports numbers, symbols, S-expressions, basic arithmetic and
 comparison operators, and the special forms `define`, `if`, `lambda`,
-`begin` and `quote`. Implemented with only the Python standard library.
+`begin` and `quote` (including the `'expr` reader shorthand for
+`(quote expr)`). Implemented with only the Python standard library.
 """
 
 import sys
@@ -36,7 +37,8 @@ def tokenize(source):
     """Turn a Lisp source string into a flat list of token strings."""
     lines = (line.split(";", 1)[0] for line in source.split("\n"))
     source = "\n".join(lines)
-    return source.replace("(", " ( ").replace(")", " ) ").split()
+    source = source.replace("(", " ( ").replace(")", " ) ").replace("'", " ' ")
+    return source.split()
 
 
 # ---------------------------------------------------------------------------
@@ -68,6 +70,11 @@ def read_from_tokens(tokens):
     if not tokens:
         raise ParseError("unexpected EOF while parsing (missing closing ')')")
     token, tokens = tokens[0], tokens[1:]
+    if token == "'":
+        if not tokens:
+            raise ParseError("unexpected EOF after quote (\"'\")")
+        expr, tokens = read_from_tokens(tokens)
+        return ["quote", expr], tokens
     if token == "(":
         items = []
         while tokens and tokens[0] != ")":

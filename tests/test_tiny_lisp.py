@@ -43,6 +43,35 @@ class TestTokenizeAndParse(unittest.TestCase):
         with self.assertRaises(tl.ParseError):
             tl.parse("(+ 1 2))")
 
+    def test_quote_shorthand_flat_list(self):
+        self.assertEqual(tl.parse("'(1 2 3)"), ["quote", [1, 2, 3]])
+
+    def test_quote_shorthand_expression(self):
+        self.assertEqual(tl.parse("'(+ 1 2)"), ["quote", ["+", 1, 2]])
+
+    def test_quote_shorthand_symbol(self):
+        self.assertEqual(tl.parse("'x"), ["quote", "x"])
+
+    def test_quote_shorthand_empty_list(self):
+        self.assertEqual(tl.parse("'()"), ["quote", []])
+
+    def test_quote_shorthand_nested_structure(self):
+        self.assertEqual(
+            tl.parse("'(1 (2 3) (+ 4 5))"),
+            ["quote", [1, [2, 3], ["+", 4, 5]]],
+        )
+
+    def test_quote_shorthand_doubled(self):
+        self.assertEqual(tl.parse("''x"), ["quote", ["quote", "x"]])
+
+    def test_quote_shorthand_equivalent_to_explicit_quote(self):
+        self.assertEqual(tl.parse("'(1 2 3)"), tl.parse("(quote (1 2 3))"))
+        self.assertEqual(tl.parse("'x"), tl.parse("(quote x)"))
+
+    def test_malformed_standalone_quote(self):
+        with self.assertRaises(tl.ParseError):
+            tl.parse("'")
+
 
 class TestEval(unittest.TestCase):
     def setUp(self):
@@ -176,6 +205,11 @@ class TestEval(unittest.TestCase):
     def test_malformed_quote_too_many_args(self):
         with self.assertRaises(tl.LispError):
             self.ev("(quote 1 2)")
+
+    def test_quote_shorthand_evaluates_like_explicit_quote(self):
+        self.assertEqual(self.ev("'(1 2 3)"), self.ev("(quote (1 2 3))"))
+        self.assertEqual(self.ev("'x"), self.ev("(quote x)"))
+        self.assertEqual(self.ev("''x"), self.ev("(quote (quote x))"))
 
 
 class TestCLI(unittest.TestCase):
